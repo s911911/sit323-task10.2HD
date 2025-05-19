@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Intelligent Health Monitor</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Settings Page Styling */
+    .settings-container {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #ffffffcc;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .settings-container h1 {
+      text-align: center;
+      color: #0066cc;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: #555;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .save-button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+      align-self: flex-start;
+    }
+
+    .save-button:hover {
+      background-color: #004c99;
+    }
+
+    @media (max-width: 480px) {
+      .form-row {
+        flex-direction: column;
+      }
+    }
+    .threshold-cards {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.threshold-cards .card {
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+  font-weight: 600;
+  min-width: 180px;
+  text-align: center;
+  border-top: 4px solid #999;
+  transition: 0.3s;
+}
+
+.threshold-cards .card#minThresholdCard {
+  border-top-color: #f44336; /* 红色 */
+  color: #f44336;
+}
+.threshold-cards .card#maxThresholdCard {
+  border-top-color: #ff9800; /* 橙色 */
+  color: #ff9800;
+}
+.threshold-cards .card#stepGoalCard {
+  border-top-color: #4caf50; /* 绿色 */
+  color: #4caf50;
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>📈 Menu</h2>
+      <button onclick="showPage('dashboard')">Dashboard</button>
+      <button onclick="showPage('history')">History</button>
+      <button onclick="showPage('settings')">Settings</button>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+      <!-- Dashboard Page -->
+      <div id="dashboard" class="page">
+        <h1>🩺 Health Monitoring Dashboard</h1>
+        <div id="stats">
+          <p>Heart Rate: <span id="heartRate">--</span> bpm</p>
+          <p>Steps: <span id="steps">--</span></p>
+          <p>Last Updated: <span id="lastUpdated">--</span></p>
+        </div>
+        <canvas id="chart" width="600" height="250"></canvas>
+        <div class="threshold-cards">
+          <div class="card" id="minThresholdCard">SET Min HR: -- bpm</div>
+          <div class="card" id="maxThresholdCard">SET Max HR: -- bpm</div>
+          <div class="card" id="stepGoalCard">SET Step Goal: --</div>
+        </div>
+      </div>
+
+      <!-- History Page -->
+      <div id="history" class="page" style="display: none;">
+        <h1>📜 Health History (Last 24h)</h1>
+        <canvas id="historyChart" width="600" height="300"></canvas>
+      </div>
+
+      <!-- Settings Page -->
+      <div id="settings" class="page" style="display: none;">
+        <div class="settings-container">
+          <h1>⚙️ Settings</h1>
+
+          <div class="section-title">🧠 Health Threshold Settings</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="minHeartRate">Minimum Heart Rate</label>
+              <input type="number" id="minHeartRate" placeholder="e.g., 50" />
+            </div>
+            <div class="form-group">
+              <label for="maxHeartRate">Maximum Heart Rate</label>
+              <input type="number" id="maxHeartRate" placeholder="e.g., 120" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stepGoal">Daily Step Goal</label>
+              <input type="number" id="stepGoal" placeholder="e.g., 8000" />
+            </div>
+          </div>
+
+          <button class="save-button" onclick="saveThresholds()">Save Thresholds</button>
+
+          <div class="section-title">🔔 Notification Preferences</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="notificationsEnabled">Enable Push Notifications</label>
+              <select id="notificationsEnabled">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="notificationFrequency">Notification Frequency</label>
+              <select id="notificationFrequency">
+                <option value="realtime">Real-time</option>
+                <option value="hourly">Hourly</option>
+                <option value="daily">Daily</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="save-button" onclick="saveNotificationSettings()">Save Preferences</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+  <script>
+    let thresholdSettings = {
+      minHeartRate: null,
+      maxHeartRate: null,
+      stepGoal: null
+    };
+
+    function saveThresholds() {
+  const min = document.getElementById("minHeartRate").value;
+  const max = document.getElementById("maxHeartRate").value;
+  const steps = document.getElementById("stepGoal").value;
+
+  // 表单校验
+  if (!min || !max || !steps || Number(min) >= Number(max)) {
+    alert("Please enter valid threshold values.\nMin HR should be less than Max HR.");
+    return;
+  }
+
+  // 保存到全局变量
+  thresholdSettings.minHeartRate = Number(document.getElementById("minHeartRate").value);
+  thresholdSettings.maxHeartRate = Number(document.getElementById("maxHeartRate").value);
+  thresholdSettings.stepGoal = Number(document.getElementById("stepGoal").value);
+
+
+  // 更新 Dashboard 页面显示
+  loadThresholdsToDisplay();
+
+  alert("✅ Threshold settings saved!");
+}
+function loadThresholdsToDisplay() {
+  document.getElementById("minThresholdCard").innerText =
+    `SET Min HR: ${thresholdSettings.minHeartRate ?? "--"} bpm`;
+
+  document.getElementById("maxThresholdCard").innerText =
+    `SET Max HR: ${thresholdSettings.maxHeartRate ?? "--"} bpm`;
+
+  document.getElementById("stepGoalCard").innerText =
+    `SET Step Goal: ${thresholdSettings.stepGoal ?? "--"}`;
+}
+  </script>
+
+  
+</body>
+</html>
+

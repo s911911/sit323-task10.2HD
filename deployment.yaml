@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-backend
+  template:
+    metadata:
+      labels:
+        app: myapp-backend
+    spec:
+      containers:
+        - name: myapp
+          image: gcr.io/myapp-460318/myapp-backend
+          ports:
+            - containerPort: 8080

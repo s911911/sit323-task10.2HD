@@ -1,19 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myapp-backend
+  name: health-monitor-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: myapp-backend
+      app: health-monitor
   template:
     metadata:
       labels:
-        app: myapp-backend
+        app: health-monitor
     spec:
       containers:
-        - name: myapp
-          image: gcr.io/myapp-460318/myapp-backend
+        - name: health-monitor-container
+          image: gcr.io/health-monitor-app-12345/health-monitor:v3
           ports:
             - containerPort: 8080
+          env:
+            - name: MONGO_URI
+              value: "mongodb://mongo-service:27017/healthdb"
